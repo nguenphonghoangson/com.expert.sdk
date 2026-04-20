@@ -1,0 +1,10 @@
+{
+  "name": "com.expert.sdk",
+  "version": "1.0.0",
+  "displayName": "Expert Framework SDK",
+  "description": "Integration SDK containing Ads, Firebase, and Analytics modules using Reflex DI.",
+  "dependencies": {
+    "com.cysharp.unitask": "2.1.0",
+    "com.gustavopsantos.reflex": "14.2.0"
+  }
+}

@@ -1,0 +1,24 @@
+{
+    "name": "Expert.SDK.Runtime",
+    "rootNamespace": "SDK",
+    "references": [
+        "UniTask",
+        "Reflex",
+        "MaxSdk.Scripts"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.applovin.mediation.ads",
+            "expression": "",
+            "define": "APPLOVIN_MAX_SDK"
+        }
+    ],
+    "noEngineReferences": false
+}
