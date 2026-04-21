@@ -1,7 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
 using SDK.Domain.Ads;
-using SDK.Application.Ads;
 using SDK.Infrastructure.Ads;
 using SDK.Infrastructure.Config;
 using Reflex.Core;
@@ -20,6 +19,10 @@ namespace SDK.Presentation.Bootstrap
 
         [Inject] private IAdsService _adsService;
 
+        /// <summary>
+        /// Registers ads-related dependencies into the DI container.
+        /// </summary>
+        /// <param name="builder">Container builder.</param>
         public void InstallBindings(ContainerBuilder builder)
         {
             if (adsConfig == null)
@@ -28,12 +31,8 @@ namespace SDK.Presentation.Bootstrap
             }
 
             builder.RegisterValue(adsConfig);
-            RegisterSingleton<AdNetworkAdapterFactory, IAdNetworkAdapterFactory>(builder);
-            RegisterSingleton<AdsService, IAdsService>(builder);
-
-            // Use Cases
-            RegisterTransient<PreloadAdsUseCase>(builder);
-            RegisterTransient<ShowAdsUseCase>(builder);
+            builder.RegisterType(typeof(AppLovinMaxAdapter), new[] { typeof(IAdNetworkAdapter) }, Lifetime.Singleton, Resolution.Lazy);
+            builder.RegisterType(typeof(AdsService), new[] { typeof(IAdsService) }, Lifetime.Singleton, Resolution.Lazy);
         }
 
         private void Start()
@@ -44,21 +43,14 @@ namespace SDK.Presentation.Bootstrap
             _adsService.InitializeAsync(adUnitIds, this.destroyCancellationToken).Forget();
         }
 
+        /// <summary>
+        /// Manually initializes the ads SDK from the current config.
+        /// </summary>
         [ContextMenu("Initialize Ads SDK")]
         public void InitializeAdsSdk()
         {
             var adUnitIds = adsConfig != null ? adsConfig.GetSelectiveInitAdUnitIds() : null;
             _adsService?.InitializeAsync(adUnitIds, this.destroyCancellationToken).Forget();
-        }
-
-        private static void RegisterSingleton<TConcrete, TContract>(ContainerBuilder builder)
-        {
-            builder.RegisterType(typeof(TConcrete), new[] { typeof(TContract) }, Lifetime.Singleton, Resolution.Lazy);
-        }
-
-        private static void RegisterTransient<TConcrete>(ContainerBuilder builder)
-        {
-            builder.RegisterType(typeof(TConcrete), Lifetime.Transient, Resolution.Lazy);
         }
     }
 }

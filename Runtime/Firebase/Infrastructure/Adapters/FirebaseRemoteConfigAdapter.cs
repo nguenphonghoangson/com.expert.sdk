@@ -17,6 +17,11 @@ namespace SDK.Infrastructure.Firebase
         private readonly ObservableStream<RemoteConfigPayload> _onConfigUpdated = new ObservableStream<RemoteConfigPayload>();
         public IObservableStream<RemoteConfigPayload> OnConfigUpdated => _onConfigUpdated;
 
+        /// <summary>
+        /// Applies default remote config values.
+        /// </summary>
+        /// <param name="defaults">Default key/value pairs.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public async UniTask InitializeAsync(IReadOnlyDictionary<string, string> defaults, CancellationToken cancellationToken)
         {
 #if FIREBASE_REMOTE_CONFIG
@@ -30,6 +35,11 @@ namespace SDK.Infrastructure.Firebase
             await UniTask.CompletedTask;
         }
 
+        /// <summary>
+        /// Fetches and activates latest remote config values.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Current remote config payload.</returns>
         public async UniTask<RemoteConfigPayload> FetchAsync(CancellationToken cancellationToken)
         {
 #if FIREBASE_REMOTE_CONFIG
@@ -51,6 +61,12 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Gets a string config value.
+        /// </summary>
+        /// <param name="key">Config key.</param>
+        /// <param name="fallback">Fallback value.</param>
+        /// <returns>String value.</returns>
         public string GetString(string key, string fallback = "")
         {
 #if FIREBASE_REMOTE_CONFIG
@@ -60,6 +76,12 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Gets an integer config value.
+        /// </summary>
+        /// <param name="key">Config key.</param>
+        /// <param name="fallback">Fallback value.</param>
+        /// <returns>Integer value.</returns>
         public int GetInt(string key, int fallback = 0)
         {
 #if FIREBASE_REMOTE_CONFIG
@@ -69,6 +91,12 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Gets a float config value.
+        /// </summary>
+        /// <param name="key">Config key.</param>
+        /// <param name="fallback">Fallback value.</param>
+        /// <returns>Float value.</returns>
         public float GetFloat(string key, float fallback = 0f)
         {
 #if FIREBASE_REMOTE_CONFIG
@@ -78,6 +106,12 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Gets a boolean config value.
+        /// </summary>
+        /// <param name="key">Config key.</param>
+        /// <param name="fallback">Fallback value.</param>
+        /// <returns>Boolean value.</returns>
         public bool GetBool(string key, bool fallback = false)
         {
 #if FIREBASE_REMOTE_CONFIG

@@ -18,9 +18,13 @@ namespace SDK.Infrastructure.Ads
         private bool _initialized;
         private bool _disposed;
 
-        public AdsService(IAdNetworkAdapterFactory adapterFactory)
+        /// <summary>
+        /// Creates an ads service with a concrete ad network adapter.
+        /// </summary>
+        /// <param name="adapter">Ad network adapter.</param>
+        public AdsService(IAdNetworkAdapter adapter)
         {
-            _adapter = adapterFactory.Create(AdProvider.AppLovinMax);
+            _adapter = adapter;
             if (_adapter is IAdRevenueEventProvider revenueProvider)
             {
                 revenueProvider.RevenuePaid += HandleRevenuePaid;
@@ -31,11 +35,23 @@ namespace SDK.Infrastructure.Ads
         public IObservableStream<AdShowEvent> OnAdShown => _onAdShown;
         public IObservableStream<AdRevenueEvent> OnRevenuePaid => _onRevenuePaid;
         public bool IsInitialized => _initialized;
+
+        /// <summary>
+        /// Initializes the underlying ad network once.
+        /// </summary>
+        /// <param name="selectiveInitAdUnitIds">Optional ad unit ids for selective initialization.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public UniTask InitializeAsync(string[] selectiveInitAdUnitIds,CancellationToken cancellationToken)
         {
             return InitializedAsync(selectiveInitAdUnitIds,cancellationToken);
         }
 
+        /// <summary>
+        /// Preloads an ad and publishes load state.
+        /// </summary>
+        /// <param name="adUnitId">Ad unit identifier.</param>
+        /// <param name="format">Ad format.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public async UniTask PreloadAsync(string adUnitId, AdFormat format, CancellationToken cancellationToken)
         {
             if (_disposed || string.IsNullOrWhiteSpace(adUnitId))
@@ -47,21 +63,45 @@ namespace SDK.Infrastructure.Ads
             GetState(adUnitId).LastLoadState = success ? AdLoadState.Loaded : AdLoadState.Failed;
         }
 
+        /// <summary>
+        /// Shows an interstitial ad.
+        /// </summary>
+        /// <param name="adUnitId">Ad unit identifier.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Show result.</returns>
         public UniTask<AdShowResult> ShowInterstitialAsync(string adUnitId, CancellationToken cancellationToken)
         {
             return ShowInternalAsync(adUnitId, AdFormat.Interstitial, cancellationToken);
         }
 
+        /// <summary>
+        /// Shows a rewarded ad.
+        /// </summary>
+        /// <param name="adUnitId">Ad unit identifier.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Show result.</returns>
         public UniTask<AdShowResult> ShowRewardedAsync(string adUnitId, CancellationToken cancellationToken)
         {
             return ShowInternalAsync(adUnitId, AdFormat.Rewarded, cancellationToken);
         }
 
+        /// <summary>
+        /// Shows a banner ad.
+        /// </summary>
+        /// <param name="adUnitId">Ad unit identifier.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Show result.</returns>
         public UniTask<AdShowResult> ShowBannerAsync(string adUnitId, CancellationToken cancellationToken)
         {
             return ShowInternalAsync(adUnitId, AdFormat.Banner, cancellationToken);
         }
 
+        /// <summary>
+        /// Returns whether an ad is ready to show.
+        /// </summary>
+        /// <param name="adUnitId">Ad unit identifier.</param>
+        /// <param name="format">Ad format.</param>
+        /// <returns>True when ready.</returns>
         public bool IsReady(string adUnitId, AdFormat format)
         {
             if (_disposed || string.IsNullOrWhiteSpace(adUnitId))
@@ -72,6 +112,11 @@ namespace SDK.Infrastructure.Ads
             return _adapter.IsReady(adUnitId, format);
         }
 
+        /// <summary>
+        /// Returns mutable runtime state for an ad unit.
+        /// </summary>
+        /// <param name="adUnitId">Ad unit identifier.</param>
+        /// <returns>Runtime state instance.</returns>
         public AdUnitRuntimeState GetState(string adUnitId)
         {
             if (_disposed)
@@ -91,6 +136,9 @@ namespace SDK.Infrastructure.Ads
             return state;
         }
 
+        /// <summary>
+        /// Unsubscribes events and disposes adapter resources.
+        /// </summary>
         public void Dispose()
         {
             if (_disposed)
@@ -153,11 +201,7 @@ namespace SDK.Infrastructure.Ads
 
         private async UniTask InitializedAsync(string[] selectiveInitAdUnitIds,CancellationToken cancellationToken)
         {
-            if (_initialized)
-            {
-                return;
-            }
-
+            if (_initialized) return;
             await _adapter.InitializeAsync(selectiveInitAdUnitIds,cancellationToken);
             _initialized = true;
         }
@@ -167,7 +211,6 @@ namespace SDK.Infrastructure.Ads
             _onAdLoaded.Publish(new AdLoadEvent
             {
                 AdUnitId = adUnitId,
-                UnitId = adUnitId,
                 Provider = _adapter.Provider,
                 Format = format,
                 Success = success,
@@ -180,7 +223,6 @@ namespace SDK.Infrastructure.Ads
             _onAdShown.Publish(new AdShowEvent
             {
                 AdUnitId = adUnitId,
-                UnitId = adUnitId,
                 Provider = _adapter.Provider,
                 Format = format,
                 Result = result,
@@ -198,8 +240,7 @@ namespace SDK.Infrastructure.Ads
 
             _onRevenuePaid.Publish(new AdRevenueEvent
             {
-                AdUnitId = signal.UnitId,
-                UnitId = signal.UnitId,
+                AdUnitId = signal.AdUnitId,
                 Provider = signal.Provider,
                 Format = signal.Format,
                 AdSource = signal.AdSource,

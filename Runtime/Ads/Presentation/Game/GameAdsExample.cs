@@ -1,7 +1,6 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using SDK.Domain.Ads;
-using SDK.Application.Ads;
 using Reflex.Attributes;
 using UnityEngine;
 
@@ -12,25 +11,28 @@ namespace SDK.Presentation.Game
         [SerializeField] private string rewardedAdUnitId = "rewarded_unit_id";
         [SerializeField] private string interstitialAdUnitId = "interstitial_unit_id";
 
-        [Inject] private PreloadAdsUseCase _preloadAds;
-        [Inject] private ShowAdsUseCase _showAds;
+        [Inject] private IAdsService _adsService;
 
         private async void Start()
         {
-            if (_preloadAds == null || _showAds == null)
+            if (_adsService == null)
             {
-                Debug.LogWarning("Ads Use Cases are not initialized.");
+                Debug.LogWarning("Ads service is not initialized.");
                 return;
             }
 
-            await _preloadAds.ExecuteAsync(rewardedAdUnitId, AdFormat.Rewarded, CancellationToken.None);
-            await _preloadAds.ExecuteAsync(interstitialAdUnitId, AdFormat.Interstitial, CancellationToken.None);
+            await _adsService.PreloadAsync(rewardedAdUnitId, AdFormat.Rewarded, CancellationToken.None);
+            await _adsService.PreloadAsync(interstitialAdUnitId, AdFormat.Interstitial, CancellationToken.None);
         }
 
+        /// <summary>
+        /// Attempts to show a rewarded ad and grants revive when successful.
+        /// </summary>
+        /// <returns>True when revive should be granted.</returns>
         public async UniTask<bool> TryShowReviveAdAsync()
         {
-            if (_showAds == null) return false;
-            var result = await _showAds.ExecuteRewardedAsync(rewardedAdUnitId, CancellationToken.None);
+            if (_adsService == null) return false;
+            var result = await _adsService.ShowRewardedAsync(rewardedAdUnitId, CancellationToken.None);
             if (result == AdShowResult.Success)
             {
                 GrantRevive();
@@ -40,10 +42,13 @@ namespace SDK.Presentation.Game
             return false;
         }
 
+        /// <summary>
+        /// Shows an interstitial ad at level end when possible.
+        /// </summary>
         public async UniTask ShowLevelEndInterstitialAsync()
         {
-            if (_showAds != null)
-                await _showAds.ExecuteInterstitialAsync(interstitialAdUnitId, CancellationToken.None);
+            if (_adsService != null)
+                await _adsService.ShowInterstitialAsync(interstitialAdUnitId, CancellationToken.None);
         }
 
         private void GrantRevive()

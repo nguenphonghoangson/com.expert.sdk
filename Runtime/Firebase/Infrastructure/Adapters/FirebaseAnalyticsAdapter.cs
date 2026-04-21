@@ -9,6 +9,11 @@ namespace SDK.Infrastructure.Firebase
 {
     public sealed class FirebaseAnalyticsAdapter : IFirebaseAnalyticsService
     {
+        /// <summary>
+        /// Logs an analytics event with optional parameters.
+        /// </summary>
+        /// <param name="eventName">Event name.</param>
+        /// <param name="parameters">Optional event parameters.</param>
         public void LogEvent(string eventName, IReadOnlyDictionary<string, object> parameters = null)
         {
 #if FIREBASE_ANALYTICS
@@ -35,6 +40,11 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Sets a user property for analytics segmentation.
+        /// </summary>
+        /// <param name="name">Property name.</param>
+        /// <param name="value">Property value.</param>
         public void SetUserProperty(string name, string value)
         {
 #if FIREBASE_ANALYTICS
@@ -44,6 +54,10 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Sends a screen view event for the current screen.
+        /// </summary>
+        /// <param name="screenName">Screen name.</param>
         public void SetCurrentScreen(string screenName)
         {
 #if FIREBASE_ANALYTICS

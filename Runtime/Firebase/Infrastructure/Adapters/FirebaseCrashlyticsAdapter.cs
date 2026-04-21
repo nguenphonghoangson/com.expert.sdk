@@ -8,6 +8,9 @@ namespace SDK.Infrastructure.Firebase
 {
     public sealed class FirebaseCrashlyticsAdapter : ICrashlyticsService
     {
+        /// <summary>
+        /// Configures Crashlytics collection and default user id.
+        /// </summary>
         public void Initialize()
         {
 #if FIREBASE_CRASHLYTICS
@@ -19,6 +22,10 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Writes a message to Crashlytics logs.
+        /// </summary>
+        /// <param name="message">Log message.</param>
         public void Log(string message)
         {
 #if FIREBASE_CRASHLYTICS
@@ -28,6 +35,10 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Sets the user id associated with crash reports.
+        /// </summary>
+        /// <param name="userId">User identifier.</param>
         public void SetUserId(string userId)
         {
 #if FIREBASE_CRASHLYTICS
@@ -37,6 +48,11 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Adds a custom key/value pair to crash reports.
+        /// </summary>
+        /// <param name="key">Custom key.</param>
+        /// <param name="value">Custom value.</param>
         public void SetCustomKey(string key, string value)
         {
 #if FIREBASE_CRASHLYTICS
@@ -46,6 +62,10 @@ namespace SDK.Infrastructure.Firebase
 #endif
         }
 
+        /// <summary>
+        /// Records a handled exception in Crashlytics.
+        /// </summary>
+        /// <param name="exception">Exception to record.</param>
         public void RecordException(System.Exception exception)
         {
 #if FIREBASE_CRASHLYTICS

@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using Reflex.Attributes;
-using SDK.Application.Firebase;
 using SDK.Domain.Firebase;
 using SDK.Infrastructure.Config;
 using SDK.Infrastructure.Firebase;
@@ -20,9 +19,15 @@ namespace SDK.Presentation.Bootstrap
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        [Inject] private FirebaseInitializationUseCase _initializeUseCase;
+        [Inject] private IFirebaseInitializer _initializer;
+        [Inject] private IRemoteConfigService _remoteConfigService;
+        [Inject] private ICrashlyticsService _crashlyticsService;
         [Inject] private FirebaseDefaultsProvider _defaultsProvider;
 
+        /// <summary>
+        /// Registers Firebase-related dependencies into the DI container.
+        /// </summary>
+        /// <param name="builder">Container builder.</param>
         public void InstallBindings(ContainerBuilder builder)
         {
             if (firebaseConfig == null)
@@ -32,21 +37,12 @@ namespace SDK.Presentation.Bootstrap
 
             builder.RegisterValue(firebaseConfig);
 
-            RegisterSingleton<FirebaseDefaultsProvider>(builder);
-            RegisterSingleton<FirebaseInitializer, IFirebaseInitializer>(builder);
-            RegisterSingleton<FirebaseAnalyticsAdapter, IFirebaseAnalyticsService>(builder);
-            RegisterSingleton<FirebaseRemoteConfigAdapter, IRemoteConfigService>(builder);
-            RegisterSingleton<FirebaseCrashlyticsAdapter, ICrashlyticsService>(builder);
-
-            // Utils
-            RegisterSingleton<RemoteConfigBinder>(builder);
-
-            // Use Cases
-            RegisterTransient<FirebaseInitializationUseCase>(builder);
-            RegisterTransient<LogAnalyticsUseCase>(builder);
-            RegisterTransient<GetRemoteConfigUseCase>(builder);
-            RegisterTransient<BindRemoteConfigUseCase>(builder);
-            RegisterTransient<ReportCrashUseCase>(builder);
+            builder.RegisterType(typeof(FirebaseDefaultsProvider), Lifetime.Singleton, Resolution.Lazy);
+            builder.RegisterType(typeof(GameRemoteConfig), new[] { typeof(IGameRemoteConfig) }, Lifetime.Singleton, Resolution.Lazy);
+            builder.RegisterType(typeof(FirebaseInitializer), new[] { typeof(IFirebaseInitializer) }, Lifetime.Singleton, Resolution.Lazy);
+            builder.RegisterType(typeof(FirebaseAnalyticsAdapter), new[] { typeof(IFirebaseAnalyticsService) }, Lifetime.Singleton, Resolution.Lazy);
+            builder.RegisterType(typeof(FirebaseRemoteConfigAdapter), new[] { typeof(IRemoteConfigService) }, Lifetime.Singleton, Resolution.Lazy);
+            builder.RegisterType(typeof(FirebaseCrashlyticsAdapter), new[] { typeof(ICrashlyticsService) }, Lifetime.Singleton, Resolution.Lazy);
         }
 
         private async void Start()
@@ -58,7 +54,11 @@ namespace SDK.Presentation.Bootstrap
             try
             {
                 var defaults = _defaultsProvider.GetDefaults();
-                await _initializeUseCase.ExecuteAsync(defaults, _cancellationTokenSource.Token);
+                await _initializer.InitializeAsync(_cancellationTokenSource.Token);
+                _crashlyticsService.Initialize();
+                await _remoteConfigService.InitializeAsync(defaults, _cancellationTokenSource.Token);
+                await _remoteConfigService.FetchAsync(_cancellationTokenSource.Token);
+                _crashlyticsService.Log("Firebase Initialized");
 
                 Debug.Log("[FirebaseBootstrapper] Initialization complete.");
             }
@@ -72,21 +72,6 @@ namespace SDK.Presentation.Bootstrap
         {
             _cancellationTokenSource?.Cancel();
             _cancellationTokenSource?.Dispose();
-        }
-
-        private static void RegisterSingleton<TConcrete>(ContainerBuilder builder)
-        {
-            builder.RegisterType(typeof(TConcrete), Lifetime.Singleton, Resolution.Lazy);
-        }
-
-        private static void RegisterSingleton<TConcrete, TContract>(ContainerBuilder builder)
-        {
-            builder.RegisterType(typeof(TConcrete), new[] { typeof(TContract) }, Lifetime.Singleton, Resolution.Lazy);
-        }
-
-        private static void RegisterTransient<TConcrete>(ContainerBuilder builder)
-        {
-            builder.RegisterType(typeof(TConcrete), Lifetime.Transient, Resolution.Lazy);
         }
     }
 }

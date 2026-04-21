@@ -13,6 +13,10 @@ namespace SDK.Infrastructure.Firebase
     {
         private bool _isInitialized;
 
+        /// <summary>
+        /// Initializes Firebase dependencies once per app lifecycle.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public async UniTask InitializeAsync(CancellationToken cancellationToken)
         {
             if (_isInitialized) return;

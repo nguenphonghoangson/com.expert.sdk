@@ -6,11 +6,19 @@ namespace SDK.Infrastructure.Config
     {
         private readonly FirebaseConfigScriptableObject _config;
 
+        /// <summary>
+        /// Creates a provider from a Firebase config asset.
+        /// </summary>
+        /// <param name="config">Firebase config scriptable object.</param>
         public FirebaseDefaultsProvider(FirebaseConfigScriptableObject config)
         {
             _config = config;
         }
 
+        /// <summary>
+        /// Builds defaults dictionary from configured entries.
+        /// </summary>
+        /// <returns>Read-only key/value defaults.</returns>
         public IReadOnlyDictionary<string, string> GetDefaults()
         {
             var defaults = new Dictionary<string, string>();

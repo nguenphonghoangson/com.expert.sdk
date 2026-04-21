@@ -5,7 +5,6 @@ namespace SDK.Domain.Ads
     public sealed class AdLoadEvent
     {
         public string AdUnitId;
-        public string UnitId;
         public AdProvider Provider;
         public AdFormat Format;
         public bool Success;
@@ -15,7 +14,6 @@ namespace SDK.Domain.Ads
     public sealed class AdShowEvent
     {
         public string AdUnitId;
-        public string UnitId;
         public AdProvider Provider;
         public AdFormat Format;
         public AdShowResult Result;
@@ -26,7 +24,6 @@ namespace SDK.Domain.Ads
     public sealed class AdRevenueEvent
     {
         public string AdUnitId;
-        public string UnitId;
         public AdProvider Provider;
         public AdFormat Format;
         public string AdSource;
@@ -37,7 +34,7 @@ namespace SDK.Domain.Ads
 
     public sealed class AdRevenueSignal
     {
-        public string UnitId;
+        public string AdUnitId;
         public AdProvider Provider;
         public AdFormat Format;
         public string AdSource;

@@ -8,6 +8,11 @@ namespace SDK.Infrastructure.Reactive
     {
         private readonly List<Action<T>> _observers = new List<Action<T>>();
 
+        /// <summary>
+        /// Adds an observer that will receive future payloads.
+        /// </summary>
+        /// <param name="observer">Observer callback.</param>
+        /// <returns>A disposable subscription.</returns>
         public IDisposable Subscribe(Action<T> observer)
         {
             if (observer == null)
@@ -19,6 +24,10 @@ namespace SDK.Infrastructure.Reactive
             return new Subscription(this, observer);
         }
 
+        /// <summary>
+        /// Broadcasts a payload to all active observers.
+        /// </summary>
+        /// <param name="payload">Payload to broadcast.</param>
         public void Publish(T payload)
         {
             for (var i = 0; i < _observers.Count; i++)

@@ -15,6 +15,10 @@ namespace SDK.Infrastructure.Config
         public string SdkKey => sdkKey;
         public AdUnitEntry[] AdUnits => adUnits;
 
+        /// <summary>
+        /// Returns all configured ad unit ids for selective SDK initialization.
+        /// </summary>
+        /// <returns>Array of ad unit ids.</returns>
         public string[] GetSelectiveInitAdUnitIds()
         {
             var ids = new string[adUnits.Length];

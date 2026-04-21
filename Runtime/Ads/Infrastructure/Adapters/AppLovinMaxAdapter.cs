@@ -7,10 +7,9 @@ using UnityEngine;
 
 namespace SDK.Infrastructure.Ads
 {
-    public sealed class AppLovinMaxAdapter : IAdNetworkAdapter, IRewardStatusProvider, IAdRevenueEventProvider, ISelectiveInitAdUnitsConfigurator, IDisposable
+    public sealed class AppLovinMaxAdapter : IAdNetworkAdapter, IRewardStatusProvider, IAdRevenueEventProvider, IDisposable
     {
         private const int CallbackTimeoutMs = 12000;
-        private static readonly string[] EmptyAdUnitIds = Array.Empty<string>();
         private readonly Dictionary<string, UniTaskCompletionSource<bool>> _loadWaiters = new Dictionary<string, UniTaskCompletionSource<bool>>();
         private readonly Dictionary<string, UniTaskCompletionSource<AdShowResult>> _showWaiters = new Dictionary<string, UniTaskCompletionSource<AdShowResult>>();
         private readonly HashSet<string> _loadedInterstitials = new HashSet<string>();
@@ -18,7 +17,6 @@ namespace SDK.Infrastructure.Ads
         private readonly HashSet<string> _createdBanners = new HashSet<string>();
         private readonly Dictionary<string, bool> _rewardGrantedByUnit = new Dictionary<string, bool>();
         private UniTaskCompletionSource<bool> _initializeWaiter;
-        private string[] _selectiveInitAdUnitIds = EmptyAdUnitIds;
         private bool _initialized;
         private bool _initializeRequested;
         private bool _callbacksRegistered;
@@ -27,6 +25,11 @@ namespace SDK.Infrastructure.Ads
 
         public AdProvider Provider => AdProvider.AppLovinMax;
 
+        /// <summary>
+        /// Initializes the AppLovin MAX SDK.
+        /// </summary>
+        /// <param name="selectiveInitAdUnitIds">Optional ad unit ids for selective initialization.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
         public async UniTask InitializeAsync(string[] selectiveInitAdUnitIds,CancellationToken cancellationToken)
         {
             if (_disposed)
@@ -57,13 +60,13 @@ namespace SDK.Infrastructure.Ads
 #endif
         }
 
-        public void SetSelectiveInitAdUnitIds(string[] adUnitIds)
-        {
-            _selectiveInitAdUnitIds = adUnitIds == null || adUnitIds.Length == 0
-                ? EmptyAdUnitIds
-                : adUnitIds;
-        }
-
+        /// <summary>
+        /// Loads an ad for the given unit and format.
+        /// </summary>
+        /// <param name="adUnitId">Ad unit identifier.</param>
+        /// <param name="format">Ad format.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>True when load succeeds.</returns>
         public async UniTask<bool> LoadAsync(string adUnitId, AdFormat format, CancellationToken cancellationToken)
         {
             if (_disposed)
@@ -101,6 +104,12 @@ namespace SDK.Infrastructure.Ads
 #endif
         }
 
+        /// <summary>
+        /// Returns whether an ad is ready to show for the given unit and format.
+        /// </summary>
+        /// <param name="unitId">Ad unit identifier.</param>
+        /// <param name="format">Ad format.</param>
+        /// <returns>True when ad is ready.</returns>
         public bool IsReady(string unitId, AdFormat format)
         {
             if (_disposed)
@@ -121,6 +130,13 @@ namespace SDK.Infrastructure.Ads
 #endif
         }
 
+        /// <summary>
+        /// Shows an ad for the given unit and format.
+        /// </summary>
+        /// <param name="adUnitId">Ad unit identifier.</param>
+        /// <param name="format">Ad format.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Show result.</returns>
         public async UniTask<AdShowResult> ShowAsync(string adUnitId, AdFormat format, CancellationToken cancellationToken)
         {
             if (_disposed)
@@ -168,6 +184,11 @@ namespace SDK.Infrastructure.Ads
 #endif
         }
 
+        /// <summary>
+        /// Returns and clears the reward flag for a rewarded ad unit.
+        /// </summary>
+        /// <param name="unitId">Ad unit identifier.</param>
+        /// <returns>True when reward was granted.</returns>
         public bool ConsumeRewardResult(string unitId)
         {
             if (_disposed)
@@ -411,7 +432,7 @@ namespace SDK.Infrastructure.Ads
         {
             RevenuePaid?.Invoke(new AdRevenueSignal
             {
-                UnitId = unitId,
+                AdUnitId = unitId,
                 Provider = Provider,
                 Format = format,
                 AdSource = adSource,
@@ -424,6 +445,9 @@ namespace SDK.Infrastructure.Ads
             return $"{unitId}:{format}";
         }
 
+        /// <summary>
+        /// Unregisters callbacks and releases adapter state.
+        /// </summary>
         public void Dispose()
         {
             if (_disposed)
